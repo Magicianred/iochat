@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>IO Chat</title>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+    body
+    {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+        background: #191919;
+        color: #fff;
+    }
+    #chat
+    {
+      margin-top: 40px;
+    }
+    #userForm
+    {
+        width: 300px;
+        padding: 40px;
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%,-50px);
+        background: #191919;
+        text-align: center;
+        border-radius: 12px;
+    }
+    #userForm h1
+    {
+        color: white;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+    #userForm input[type = "text"]
+    {
+        border: 0;
+        background: none;
+        display: block;
+        margin: 20px auto;
+        text-align: center;
+        border: 2px solid #3498db;
+        padding: 14px 10px;
+        width: 200px;
+        outline: none;
+        color:  white;
+        border-radius: 24px;
+        transition: 0.25s;
+    }
+    #userForm input[type = "text"]:focus
+    {
+        width: 280px;
+        border-color: #2ecc71;
+    }
+    #userForm input[type = "submit"]
+    {
+        border: 0;
+        background: none;
+        display: block;
+        margin: 20px auto;
+        text-align: center;
+        border: 2px solid #2ecc71;
+        padding: 14px 40px;
+        outline: none;
+        color: white;
+        border-radius: 24px;
+        transition: 0.25s;
+        cursor: pointer;
+    }
+    #userForm input[type = "submit"]:hover
+    {
+        background: #2ecc71;
+    }
+    #messageArea
+    {
+      display:none;
+    }
+		h2
+		{
+			padding: 15% 0 0 3%;
+		}
+		.list-group
+		{
+			
+			margin-left: 5%;
+			
+		}
+		.box
+		{
+			width: 78%;
+			height: 1990px;
+			float:left;
+			background-color: none;
+		}
+		.box2
+		{
+			width: 95%;
+			height: 1990px;
+			margin-left: 5%;
+			background-color: none;
+		}
+		.formgroup
+		{
+			margin-top: 5%;
+			background-color: none;
+		}
+		.form-control
+		{
+			width: 98%;
+			height: 61px;
+			border-radius: 10px;
+		}
+		.btn
+		{
+			width:125px;
+			height: 40px;
+			margin-top: 15px;
+            border: 2px solid #fff;
+			border-radius: 20px;
+			background-color: transparent;
+            color: #fff;
+            transition: all .5s;
+		}
+        .btn:hover {
+            background-color: #fff;
+            color: #191919;
+        }
+		#messageArea
+		{
+			width: 100%;
+			height: 2000px;
+		}
+		#UserBox
+		{
+			width: 15%;
+		 	height: 1500px;
+			margin: 2% 0 0 3%;
+			background-color: none;
+			font: bold 15px arial;
+			float:left;
+		}
+		#well
+		{
+			width: 100%;
+			height: 200px;
+			border-radius: 20px;
+			background-color: gray;
+			
+		}
+    </style>
+  </head>
+  <body>
+    <div id="userFormArea">
+      <form id="userForm" method="post">
+			  <h1>Login</h1>
+          <input type="text" id="username" placeholder="Enter your Name" />
+          <input type="submit" class="" value="Login" />
+      </form>
+    </div>
+    <div id="messageArea">
+			<div id="UserBox">
+				<div id="well">
+					<h2>Online Users</h2>
+					<ul class="list-group" id="users"></ul>
+				</div>
+			</div>
+        <div class="box">
+		<div class="box2">
+        <div id="chat"></div>
+        <form id="messageForm">
+          <div class="formgroup">
+          <textarea class="form-control" id="message" placeholder="Message here"></textarea>
+          <br/>
+          <input type="submit" class="btn" value="Send Message" />
+        </div>
+      </form>
+	  </div>
+    </div>
+	</div>
+    <script>
+
+      $(function(){
+        var socket = io.connect();
+        var $messageForm = $('#messageForm');
+        var $message = $('#message');
+        var $chat = $('#chat');
+        var $messageArea = $('#messageArea');
+        var $userFormArea = $('#userFormArea');
+        var $userForm = $('#userForm');
+        var $users = $('#users');
+        var $username = $('#username');
+
+        $messageForm.submit(function(e){
+          e.preventDefault();
+          socket.emit('send message', $message.val());
+          $message.val('');
+        });
+
+        socket.on('new message', function(data){
+          $chat.append('<div class="hi"><strong>'+data.user+'</strong>: '+data.msg+'</div>');
+        });
+
+        $userForm.submit(function(e){
+          e.preventDefault();
+          socket.emit('new user', $username.val(), function(data){
+            if(data){
+              $userFormArea.hide();
+              $messageArea.show();
+            }
+          });
+          $username.val('');
+        });
+
+        socket.on('get users', function(data){
+          var html = '';
+          for(i = 0;i < data.length;i++){
+            html += '<li class="list-group-item">'+data[i]+'</li>';
+          }
+          $users.html(html);
+        });
+      });
+
+    </script>
+  </body>
+</html>
